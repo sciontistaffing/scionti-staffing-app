@@ -1,7 +1,7 @@
 const fs = require('fs');
 const https = require('https');
 
-const url = 'https://upload.wikimedia.org/wikipedia/commons/2/25/Acoustic_Guitar_-_Fingerpicking_-_Open_D.ogg';
+const url = 'https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e0/Street_musician_playing_the_saxophone_-_Krakow_-_Poland.ogg/Street_musician_playing_the_saxophone_-_Krakow_-_Poland.ogg.mp3';
 
 const options = {
   headers: {
@@ -17,14 +17,14 @@ https.get(url, options, (res) => {
   
   if (res.statusCode === 302) {
     https.get(res.headers.location, options, (res2) => {
-       const file = fs.createWriteStream('./public/bgm.ogg');
+       const file = fs.createWriteStream('./public/bgm.mp3');
        res2.pipe(file);
-       file.on('finish', () => console.log('Downloaded bgm.ogg via redirect'));
+       file.on('finish', () => console.log('Downloaded bgm.mp3 via redirect'));
     });
   } else {
-    const file = fs.createWriteStream('./public/bgm.ogg');
+    const file = fs.createWriteStream('./public/bgm.mp3');
     res.pipe(file);
-    file.on('finish', () => console.log('Downloaded bgm.ogg'));
+    file.on('finish', () => console.log('Downloaded bgm.mp3'));
   }
 }).on('error', (err) => {
   console.error('Error downloading:', err.message);

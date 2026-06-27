@@ -8,6 +8,8 @@ import { SkillsGrid } from './components/SkillsGrid';
 import { AboutUs } from './components/AboutUs';
 import { Pricing } from './components/Pricing';
 import { Showcase } from './components/Showcase';
+import { CreativeLab } from './components/CreativeLab';
+import { TestimonialCarousel } from './components/TestimonialCarousel';
 import { PolicyModal, PolicyType } from './components/PolicyModal';
 import { motion, AnimatePresence } from 'motion/react';
 import { Brain, X, Send } from 'lucide-react';
@@ -184,7 +186,11 @@ export default function App() {
         
         <Showcase />
 
+        <CreativeLab />
+
         <Pricing />
+        
+        <TestimonialCarousel />
         
         <SkillsGrid />
 
@@ -192,48 +198,71 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-50 w-full py-8 border-t border-white/5 bg-black/40 backdrop-blur-md mt-12" id="site-footer">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center gap-4 text-center">
-          <div className="flex flex-col md:flex-row items-center gap-6 text-sm font-medium uppercase tracking-widest text-white/70">
-            <a href="tel:903-776-4825" className="hover:text-[#00e5ff] transition-colors flex items-center gap-2" id="footer-phone">
-              <span>Phone:</span> 903-776-4825
-            </a>
-            <span className="hidden md:inline w-1 h-1 rounded-full bg-[#00e5ff]/60" />
-            <a href="https://sciontistaffing.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#00e5ff] transition-colors" id="footer-website">
-              sciontistaffing.com
-            </a>
-          </div>
-          
-          {/* Core Corporate Legal Links */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] md:text-xs font-semibold uppercase tracking-widest text-white/50 mt-1" id="footer-policy-links">
-            <button 
-              onClick={() => setActivePolicy('refund')} 
-              className="hover:text-[#00e5ff] transition-colors cursor-pointer"
-              id="footer-refund-policy"
-            >
-              Refund Policy
-            </button>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <button 
-              onClick={() => setActivePolicy('privacy')} 
-              className="hover:text-[#00e5ff] transition-colors cursor-pointer"
-              id="footer-privacy-policy"
-            >
-              Privacy Policy
-            </button>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <button 
-              onClick={() => setActivePolicy('terms')} 
-              className="hover:text-[#00e5ff] transition-colors cursor-pointer"
-              id="footer-terms-of-service"
-            >
-              Terms of Service
-            </button>
+      <footer className="relative z-50 w-full py-10 border-t border-white/5 bg-black/40 backdrop-blur-md mt-12" id="site-footer">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col md:flex-row items-center gap-6 text-sm font-medium uppercase tracking-widest text-white/70">
+              <a href="tel:903-776-4825" className="hover:text-[#00e5ff] transition-colors flex items-center gap-2" id="footer-phone">
+                <span>Phone:</span> 903-776-4825
+              </a>
+              <span className="hidden md:inline w-1 h-1 rounded-full bg-[#00e5ff]/60" />
+              <a href="https://sciontistaffing.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#00e5ff] transition-colors" id="footer-website">
+                sciontistaffing.com
+              </a>
+            </div>
+            
+            {/* Core Corporate Legal Links */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 text-[10px] md:text-xs font-semibold uppercase tracking-widest text-white/50 mt-1" id="footer-policy-links">
+              <button 
+                onClick={() => setActivePolicy('refund')} 
+                className="hover:text-[#00e5ff] transition-colors cursor-pointer"
+                id="footer-refund-policy"
+              >
+                Refund Policy
+              </button>
+              <span className="w-1 h-1 rounded-full bg-white/20" />
+              <button 
+                onClick={() => setActivePolicy('privacy')} 
+                className="hover:text-[#00e5ff] transition-colors cursor-pointer"
+                id="footer-privacy-policy"
+              >
+                Privacy Policy
+              </button>
+              <span className="w-1 h-1 rounded-full bg-white/20" />
+              <button 
+                onClick={() => setActivePolicy('terms')} 
+                className="hover:text-[#00e5ff] transition-colors cursor-pointer"
+                id="footer-terms-of-service"
+              >
+                Terms of Service
+              </button>
+            </div>
+
+            <p className="text-xs text-white/40 uppercase tracking-widest mt-2" id="site-copyright">
+              © {new Date().getFullYear()} Scionti Staffing. All Rights Reserved.
+            </p>
           </div>
 
-          <p className="text-xs text-white/40 uppercase tracking-widest mt-2" id="site-copyright">
-            © {new Date().getFullYear()} Scionti Staffing. All Rights Reserved.
-          </p>
+          {/* QR Code Generation Feature */}
+          <div className="flex flex-col items-center md:items-end gap-2 bg-white/5 border border-white/10 rounded-2xl p-4 shadow-[0_4px_30px_rgba(0,0,0,0.5)] backdrop-blur-md" id="footer-qrcode-wrapper">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-widest text-[#00e5ff] font-bold">Mobile Gateway</span>
+              <span className="flex h-1.5 w-1.5 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e5ff]/40 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00e5ff]"></span>
+              </span>
+            </div>
+            <div className="p-2 bg-white rounded-xl border border-white/10 shadow-[0_0_20px_rgba(0,229,255,0.15)] transition-all duration-300 hover:scale-[1.03]">
+              <img 
+                src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=000000&bgcolor=ffffff&qzone=1&data=https://sciontistaffing.com" 
+                alt="Scionti Staffing Mobile QR Code" 
+                className="w-24 h-24 select-none"
+                referrerPolicy="no-referrer"
+                id="footer-qrcode-img"
+              />
+            </div>
+            <span className="text-[9px] text-white/40 uppercase tracking-widest font-mono">Scan for sciontistaffing.com</span>
+          </div>
         </div>
       </footer>
       {/* AI AI Learning Feedback Button */}

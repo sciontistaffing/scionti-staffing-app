@@ -7,7 +7,7 @@ import joePic from '../assets/images/joe_profile_1779927538635.png';
 interface AgentProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  agent: 'Marie' | 'Joe' | null;
+  agent: 'Sophia' | 'Mike' | 'Marie' | 'Joe' | null;
   marieVoice: string;
   setMarieVoice: (voice: string) => void;
   joeVoice: string;
@@ -27,14 +27,14 @@ export function AgentProfileModal({
 
   if (!agent) return null;
 
-  const isMarie = agent === 'Marie';
+  const isMarie = agent === 'Marie' || agent === 'Sophia';
   const currentVoiceId = isMarie ? marieVoice : joeVoice;
   const setVoice = isMarie ? setMarieVoice : setJoeVoice;
 
   const voicesList = isMarie 
     ? [
-        { id: 'Gemini', name: 'Sophia (Neural) 🌟', desc: 'Vibrant, Warm & Youthfully Energetic (Primary)' },
-        { id: 'Kimberly', name: 'Sophia (Expressive) 🇺🇸', desc: 'Highly Upbeat & Active' },
+        { id: 'Gemini', name: 'Marie (Neural) 🌟', desc: 'Vibrant, Warm & Youthfully Energetic (Primary)' },
+        { id: 'Kimberly', name: 'Marie (Expressive) 🇺🇸', desc: 'Highly Upbeat & Active' },
         { id: 'Salli', name: 'Lucy (Conversational) 🇺🇸', desc: 'Friendly, Expressive & Bright' },
         { id: 'Joanna', name: 'Joanna (Professional) 🇺🇸', desc: 'Smooth, Corporate & Engaging' },
         { id: 'Mia', name: 'Mia (Bilingual) 🇲🇽/🇺🇸', desc: 'Fluid Bilingual Spanish-English' },
@@ -42,8 +42,8 @@ export function AgentProfileModal({
         { id: 'Conchita', name: 'Isabella (Castilian) 🇪🇸', desc: 'Traditional Spanish Vocalization' },
       ]
     : [
-        { id: 'Gemini', name: 'Mike (Neural) 🌟', desc: 'Action-Oriented, Dynamic & Enthusiastic (Primary)' },
-        { id: 'Joey', name: 'Mike (Expressive) 🇺🇸', desc: 'Bright, High-Energy & Fast' },
+        { id: 'Gemini', name: 'Joe (Neural) 🌟', desc: 'Action-Oriented, Dynamic & Enthusiastic (Primary)' },
+        { id: 'Joey', name: 'Joe (Expressive) 🇺🇸', desc: 'Bright, High-Energy & Fast' },
         { id: 'Matthew', name: 'David (Professional) 🇺🇸', desc: 'Clear, Executive & Confident' },
         { id: 'Andres', name: 'Andres (Bilingual) 🇲🇽/🇺🇸', desc: 'Fluid Bilingual Spanish-English' },
         { id: 'Miguel', name: 'Mateo (Bilingual) 🇲🇽', desc: 'Clear Latin American Accent' },
@@ -190,7 +190,7 @@ export function AgentProfileModal({
 
               <div className="flex-1 text-center md:text-left">
                 <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3 mb-2">
-                  <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{isMarie ? 'Sophia' : 'Mike'}</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{isMarie ? 'Marie' : 'Joe'}</h2>
                   <div className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border ${
                     isMarie ? 'bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30' : 'bg-[#00b0ff]/10 text-[#00b0ff] border-[#00b0ff]/30'
                   }`}>
@@ -200,8 +200,8 @@ export function AgentProfileModal({
                 
                 <p className="text-white/70 text-sm leading-relaxed mb-4">
                   {isMarie 
-                    ? "Sophia (referenced as Marie in communication logs) is our premium Spanish-English Intake Lead. Dynamic and polite, she captures client needs down flawlessly to customize enterprise staff."
-                    : "Mike (referenced as Joe in communication logs) is our expert Technical Specialist. Full of energy, he designs robust, tailored backend models that keep your front office booking clients 24/7."}
+                    ? "Marie is our premium Spanish-English Intake Lead. Dynamic and polite, she captures client needs down flawlessly to customize enterprise staff."
+                    : "Joe is our expert Technical Specialist. Full of energy, he designs robust, tailored backend models that keep your front office booking clients 24/7."}
                 </p>
 
                 <div className="grid grid-cols-2 gap-3 text-left">

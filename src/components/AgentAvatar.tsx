@@ -3,7 +3,7 @@ import mariePic from '../assets/images/marie_profile_1779927562287.png';
 import joePic from '../assets/images/joe_profile_1779927538635.png';
 
 interface AgentAvatarProps {
-  name: 'Marie' | 'Joe';
+  name: 'Sophia' | 'Mike' | 'Marie' | 'Joe';
   isSpeaking: boolean;
   isActive: boolean;
   isProcessing?: boolean;
@@ -11,7 +11,7 @@ interface AgentAvatarProps {
 }
 
 export function AgentAvatar({ name, isSpeaking, isActive, isProcessing, onClick }: AgentAvatarProps) {
-  const isMarie = name === 'Marie';
+  const isMarie = name === 'Marie' || name === 'Sophia';
   const primaryColor = isMarie ? '#00e5ff' : '#00b0ff';
   
   // Using the high-quality custom generated images for Marie and Joe

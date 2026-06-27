@@ -6,7 +6,7 @@ import mariePic from '../assets/images/marie_profile_1779927562287.png';
 import joePic from '../assets/images/joe_profile_1779927538635.png';
 import { Mic, Globe, Cpu, Calendar, CheckCircle2, MicOff, MessageSquare, MessageSquareOff, Activity, Shield, X, Music, AlertCircle, RotateCcw, Sparkles, Volume2, Settings } from 'lucide-react';
 
-type Speaker = 'user' | 'Marie' | 'Joe' | 'idle';
+type Speaker = 'user' | 'Sophia' | 'Mike' | 'Marie' | 'Joe' | 'idle';
 
 interface Message {
   id: number;
@@ -83,6 +83,294 @@ const decodeAudioDataHelper = (ctx: AudioContext, arrayBuffer: ArrayBuffer): Pro
   });
 };
 
+class SyntheticSaxBGM {
+  private ctx: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
+  private isPlaying = false;
+  private schedulerTimer: any = null;
+  private currentBeat = 0;
+  private tempo = 68; // Chill late-night smooth jazz tempo
+  private volumeValue = 0.05;
+
+  constructor() {}
+
+  start() {
+    if (this.isPlaying) return;
+    this.isPlaying = true;
+    
+    try {
+      if (!this.ctx) {
+        this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.setValueAtTime(this.volumeValue, this.ctx.currentTime);
+      this.masterGain.connect(this.ctx.destination);
+
+      this.currentBeat = 0;
+      this.scheduleNext();
+    } catch (e) {
+      console.warn("Failed to start synthetic BGM engine:", e);
+    }
+  }
+
+  setVolume(vol: number) {
+    this.volumeValue = vol;
+    if (this.masterGain && this.ctx) {
+      try {
+        this.masterGain.gain.setTargetAtTime(vol, this.ctx.currentTime, 0.15);
+      } catch (e) {
+        try {
+          this.masterGain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        } catch (err) {}
+      }
+    }
+  }
+
+  private scheduleNext() {
+    if (!this.isPlaying || !this.ctx) return;
+
+    try {
+      const beatDuration = 60 / this.tempo;
+      const now = this.ctx.currentTime;
+
+      // Jazz chords: Fmaj9, G13, Em7, Am9
+      const chords = [
+        [174.61, 220.00, 261.63, 329.63, 349.23], // Fmaj9
+        [196.00, 246.94, 293.66, 392.00, 440.00], // G13
+        [164.81, 196.00, 246.94, 329.63, 392.00], // Em7
+        [220.00, 261.63, 329.63, 392.00, 493.88]  // Am9
+      ];
+
+      const chordIdx = Math.floor(this.currentBeat / 8) % chords.length;
+      const currentChord = chords[chordIdx];
+
+      // Play soft ambient chord pad on beat 0 and 4 of each 8-beat cycle
+      if (this.currentBeat % 4 === 0) {
+        currentChord.slice(0, 4).forEach((freq, idx) => {
+          this.playPadNote(freq, now + idx * 0.05, beatDuration * 3.8);
+        });
+      }
+
+      // Improvise a soft, soulful saxophone melody note
+      const pentatonic = [329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99]; // E4, G4, A4, C5, D5, E5, G5
+      
+      const melodicBeats = [0, 2, 3, 5, 6, 7];
+      if (melodicBeats.includes(this.currentBeat % 8) && Math.random() < 0.55) {
+        const noteFreq = pentatonic[Math.floor(Math.random() * pentatonic.length)];
+        const duration = beatDuration * (1 + Math.random() * 1.5);
+        this.playSaxNote(noteFreq, now, duration);
+      }
+
+      this.currentBeat++;
+
+      this.schedulerTimer = setTimeout(() => {
+        this.scheduleNext();
+      }, beatDuration * 1000);
+    } catch (e) {
+      console.warn("Synthetic BGM scheduling failed:", e);
+    }
+  }
+
+  private playPadNote(freq: number, startTime: number, duration: number) {
+    if (!this.ctx || !this.masterGain) return;
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const filter = this.ctx.createBiquadFilter();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(350, startTime);
+
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.12, startTime + 0.8);
+      gain.gain.setValueAtTime(0.12, startTime + duration - 0.8);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    } catch (e) {}
+  }
+
+  private playSaxNote(freq: number, startTime: number, duration: number) {
+    if (!this.ctx || !this.masterGain) return;
+
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const filter = this.ctx.createBiquadFilter();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, startTime);
+
+      const vibratoLfo = this.ctx.createOscillator();
+      const vibratoGain = this.ctx.createGain();
+      vibratoLfo.frequency.setValueAtTime(5.2, startTime);
+      vibratoGain.gain.setValueAtTime(freq * 0.012, startTime);
+      
+      vibratoLfo.connect(vibratoGain);
+      vibratoGain.connect(osc.frequency);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(800, startTime);
+      filter.frequency.exponentialRampToValueAtTime(450, startTime + duration);
+
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.16, startTime + 0.2);
+      gain.gain.linearRampToValueAtTime(0.12, startTime + 0.4);
+      gain.gain.setValueAtTime(0.12, startTime + duration - 0.25);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain);
+
+      vibratoLfo.start(startTime);
+      osc.start(startTime);
+
+      vibratoLfo.stop(startTime + duration);
+      osc.stop(startTime + duration);
+    } catch (e) {}
+  }
+
+  stop() {
+    this.isPlaying = false;
+    if (this.schedulerTimer) {
+      clearTimeout(this.schedulerTimer);
+      this.schedulerTimer = null;
+    }
+    if (this.masterGain) {
+      try {
+        this.masterGain.disconnect();
+      } catch (e) {}
+      this.masterGain = null;
+    }
+  }
+}
+
+const speakNativeHelper = (text: string, lang: string, speaker: 'Marie' | 'Joe' | 'Sophia' | 'Mike'): Promise<boolean> => {
+  return new Promise<boolean>((resolve) => {
+    try {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      
+      const voices = window.speechSynthesis.getVoices();
+      let selectedVoice = null;
+      
+      const isMarie = speaker === 'Marie' || speaker === 'Sophia';
+      const isSpanish = lang.toLowerCase().startsWith('es');
+      
+      if (isMarie) {
+        if (isSpanish) {
+          selectedVoice = voices.find(v => v.lang.startsWith('es') && (
+            v.name.includes('Monica') || 
+            v.name.includes('Paulina') || 
+            v.name.includes('Google') || 
+            v.name.includes('Female') || 
+            v.name.toLowerCase().includes('maria') || 
+            v.name.toLowerCase().includes('mia') || 
+            v.name.toLowerCase().includes('helena')
+          ));
+        } else {
+          selectedVoice = voices.find(v => v.lang.startsWith('en') && (
+            v.name.includes('Zira') || 
+            v.name.includes('Samantha') || 
+            v.name.includes('Google US English') || 
+            v.name.includes('Female') || 
+            v.name.toLowerCase().includes('salli') || 
+            v.name.toLowerCase().includes('joanna')
+          ));
+        }
+      } else {
+        if (isSpanish) {
+          selectedVoice = voices.find(v => v.lang.startsWith('es') && (
+            v.name.includes('Jorge') || 
+            v.name.includes('Google') || 
+            v.name.includes('Male') || 
+            v.name.toLowerCase().includes('andres') || 
+            v.name.toLowerCase().includes('miguel')
+          ));
+        } else {
+          selectedVoice = voices.find(v => v.lang.startsWith('en') && (
+            v.name.includes('David') || 
+            v.name.includes('Google UK English Male') || 
+            v.name.includes('Male') || 
+            v.name.toLowerCase().includes('joey') || 
+            v.name.toLowerCase().includes('matthew')
+          ));
+        }
+      }
+      
+      if (!selectedVoice) {
+        selectedVoice = voices.find(v => v.lang.startsWith(isSpanish ? 'es' : 'en'));
+      }
+      
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+      
+      utterance.rate = isMarie ? 1.05 : 0.95;
+      utterance.pitch = isMarie ? 1.02 : 0.93;
+      
+      if (!(window as any)._activeUtterances) {
+        (window as any)._activeUtterances = [];
+      }
+      (window as any)._activeUtterances.push(utterance);
+      
+      const cleanup = () => {
+        if ((window as any)._activeUtterances) {
+          const idx = (window as any)._activeUtterances.indexOf(utterance);
+          if (idx !== -1) {
+            (window as any)._activeUtterances.splice(idx, 1);
+          }
+        }
+      };
+      
+      const timeoutId = setTimeout(() => {
+        console.warn("[TTS Fallback Safety] Native SpeechSynthesis hang detected. Resolving dynamically.");
+        window.speechSynthesis.cancel();
+        cleanup();
+        resolve(true);
+      }, Math.max(3000, text.length * 100));
+      
+      utterance.onend = () => {
+        clearTimeout(timeoutId);
+        cleanup();
+        resolve(true);
+      };
+      
+      utterance.onerror = (evt) => {
+        console.error("Web Speech API playback interrupted or failed:", evt);
+        clearTimeout(timeoutId);
+        cleanup();
+        resolve(true);
+      };
+      
+      setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+      }, 50);
+    } catch (fallbackErr) {
+      console.error("Web Speech API crashed completely:", fallbackErr);
+      setTimeout(() => resolve(true), 1500);
+    }
+  });
+};
+
 export function InteractionZone() {
   const [language, setLanguage] = useState<'en-US' | 'es-ES'>('en-US');
   const [capturedData, setCapturedData] = useState<CapturedData>({ 
@@ -109,44 +397,44 @@ export function InteractionZone() {
   const [selectedAgentProfile, setSelectedAgentProfile] = useState<'Marie' | 'Joe' | null>(null);
   const [ttsErrorMsg, setTtsErrorMsg] = useState('');
   const [volLevel, setVolLevel] = useState(0);
-  const [bgmEnabled, setBgmEnabled] = useState(false);
+  const [bgmEnabled, setBgmEnabled] = useState(true);
   const [interruptionEnabled, setInterruptionEnabled] = useState(false);
   const interruptionEnabledRef = useRef(false);
   const introAudioCacheRef = useRef<{marie: any, joe: any}>({ marie: null, joe: null });
 
-  const [marieVoice, setMarieVoice] = useState<string>(() => {
+  const [sophiaVoice, setSophiaVoice] = useState<string>(() => {
     try {
-      const saved = localStorage.getItem('s_marie_voice');
+      const saved = localStorage.getItem('s_sophia_voice');
       return saved || 'Gemini';
     } catch {
       return 'Gemini';
     }
   });
 
-  const [joeVoice, setJoeVoice] = useState<string>(() => {
+  const [mikeVoice, setMikeVoice] = useState<string>(() => {
     try {
-      const saved = localStorage.getItem('s_joe_voice');
-      return saved || 'Joey';
+      const saved = localStorage.getItem('s_mike_voice');
+      return saved || 'Gemini';
     } catch {
-      return 'Joey';
+      return 'Gemini';
     }
   });
 
-  const handleSetMarieVoice = (v: string) => {
-    setMarieVoice(v);
+  const handleSetSophiaVoice = (v: string) => {
+    setSophiaVoice(v);
     introAudioCacheRef.current.marie = null;
     try {
-      localStorage.setItem('s_marie_voice', v);
+      localStorage.setItem('s_sophia_voice', v);
     } catch (e) {
       console.warn("Storage write failed:", e);
     }
   };
 
-  const handleSetJoeVoice = (v: string) => {
-    setJoeVoice(v);
+  const handleSetMikeVoice = (v: string) => {
+    setMikeVoice(v);
     introAudioCacheRef.current.joe = null;
     try {
-      localStorage.setItem('s_joe_voice', v);
+      localStorage.setItem('s_mike_voice', v);
     } catch (e) {
       console.warn("Storage write failed:", e);
     }
@@ -159,6 +447,14 @@ export function InteractionZone() {
     
     // Command the master audio playback to stop first
     stopAIAudio(false);
+    
+    // Unlock and resume AudioContext on direct click interaction
+    if (!audioCtxRef.current) {
+      audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      await audioCtxRef.current.resume();
+    }
     
     setIsPlayingIntroPitch(speaker);
     setCurrentSpeaker(speaker);
@@ -183,9 +479,16 @@ export function InteractionZone() {
         isInterruptedRef.current = false;
         
         await playAudioData(audioResult.audio, audioResult.isRawPCM, 24000, speaker, audioResult.isFallback);
+      } else {
+        throw new Error("No premium audio result returned from TTS server.");
       }
     } catch (err) {
-      console.warn(`Failed to play pitch stream for ${speaker}:`, err);
+      console.warn(`Failed to play pitch stream for ${speaker}, using native speech synthesis fallback:`, err);
+      const text = speaker === 'Marie' ? MARIE_INTRO_TEXT : JOE_INTRO_TEXT;
+      isPlayingRef.current = true;
+      isInterruptedRef.current = false;
+      
+      await speakNativeHelper(text, 'en-US', speaker);
     } finally {
       setCurrentSpeaker('idle');
       setIsPlayingIntroPitch(null);
@@ -310,22 +613,22 @@ export function InteractionZone() {
     introAudioCacheRef.current.joe = null;
     const prefetchIntroAudio = async () => {
       try {
-        const [marieAudio, joeAudio] = await Promise.all([
+        const [sophiaAudio, mikeAudio] = await Promise.all([
           fetchTTSAudio(MARIE_INTRO_TEXT, 'Marie', 'en-US'),
           fetchTTSAudio(JOE_INTRO_TEXT, 'Joe', 'en-US')
         ]);
-        if (marieAudio) {
-          introAudioCacheRef.current.marie = marieAudio;
+        if (sophiaAudio) {
+          introAudioCacheRef.current.marie = sophiaAudio;
         }
-        if (joeAudio) {
-          introAudioCacheRef.current.joe = joeAudio;
+        if (mikeAudio) {
+          introAudioCacheRef.current.joe = mikeAudio;
         }
       } catch (err) {
         console.warn("Background prefetch of intro TTS failed:", err);
       }
     };
     prefetchIntroAudio();
-  }, [marieVoice, joeVoice]);
+  }, [sophiaVoice, mikeVoice]);
 
   const [voicesLoaded, setVoicesLoaded] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -350,6 +653,18 @@ export function InteractionZone() {
   const activeSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const activeGainRef = useRef<GainNode | null>(null);
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
+  const syntheticBgmRef = useRef<SyntheticSaxBGM | null>(null);
+  
+  // Initialize synthetic BGM engine on mount
+  useEffect(() => {
+    syntheticBgmRef.current = new SyntheticSaxBGM();
+    return () => {
+      if (syntheticBgmRef.current) {
+        syntheticBgmRef.current.stop();
+      }
+    };
+  }, []);
+
   const isPlayingRef = useRef(false);
   const isListeningRef = useRef(false);
   const currentSpeakerRef = useRef<Speaker>('idle');
@@ -360,6 +675,7 @@ export function InteractionZone() {
   const emailSentRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const silenceTimeoutRef = useRef<any>(null);
+  const micBlockedRef = useRef(false);
 
   useEffect(() => {
     if ((capturedData.contact || capturedData.appointmentConfirmed) && !emailSentRef.current) {
@@ -410,6 +726,7 @@ export function InteractionZone() {
 
   const startVAD = async () => {
     setMicError(false);
+    micBlockedRef.current = false;
     
     if (vadIntervalRef.current) clearInterval(vadIntervalRef.current);
     vadIntervalRef.current = setInterval(() => {
@@ -440,17 +757,17 @@ export function InteractionZone() {
   }, [isListening]);
 
   useEffect(() => {
-    if (bgmAudioRef.current) {
-      bgmAudioRef.current.volume = 0.05; // Keep it very low so it's a nice background finger-style guitar
+    if (syntheticBgmRef.current) {
+      syntheticBgmRef.current.setVolume(0.05); // Keep it very low so it's a nice soft saxophone background
     }
   }, []);
 
   useEffect(() => {
-    if (bgmAudioRef.current) {
+    if (syntheticBgmRef.current) {
       if (isListening) {
-        bgmAudioRef.current.volume = 0.01; // Duck the volume significantly when listening
+        syntheticBgmRef.current.setVolume(0.015); // Duck the volume significantly when listening
       } else {
-        bgmAudioRef.current.volume = 0.05; // Normal background level
+        syntheticBgmRef.current.setVolume(0.05); // Normal background level
       }
     }
   }, [isListening]);
@@ -459,7 +776,7 @@ export function InteractionZone() {
     currentSpeakerRef.current = currentSpeaker;
   }, [currentSpeaker]);
 
-  // Autoplay guard: Resume AudioContext on any user interaction with the document
+  // Autoplay guard: Resume AudioContext and start BGM on any user interaction with the document
   useEffect(() => {
     const resumeContext = () => {
       if (!audioCtxRef.current) {
@@ -470,12 +787,23 @@ export function InteractionZone() {
           .then(() => console.log("AudioContext resumed on user gesture"))
           .catch(e => console.warn("Failed to resume AudioContext:", e));
       }
+      // Play background music on first user gesture if active
+      if (bgmEnabled && syntheticBgmRef.current) {
+        syntheticBgmRef.current.start();
+      }
     };
     window.addEventListener('click', resumeContext, { passive: true });
     window.addEventListener('touchstart', resumeContext, { passive: true });
     return () => {
       window.removeEventListener('click', resumeContext);
       window.removeEventListener('touchstart', resumeContext);
+    };
+  }, []);
+
+  // Clean up all running audio, synthetic voices, and recognition on component unmount
+  useEffect(() => {
+    return () => {
+      stopDemo();
     };
   }, []);
 
@@ -512,8 +840,8 @@ export function InteractionZone() {
         body: JSON.stringify({ 
           message: userText,
           history: chatHistoryRef.current,
-          marieVoice,
-          joeVoice
+          marieVoice: sophiaVoice,
+          joeVoice: mikeVoice
         }),
         signal: abortControllerRef.current.signal
       });
@@ -564,7 +892,7 @@ export function InteractionZone() {
         if (data.messages && data.messages.length > 0) {
           data.messages.forEach((msg: any) => {
              if (msg.text) {
-               msg.text = msg.text.replace(/\bMark\b/g, "Joe").replace(/\bMike\b/g, "Joe").replace(/\bJoe\b/g, "Joe").replace(/\bSophia\b/g, "Marie").replace(/\bMarie\b/g, "Marie");
+               msg.text = msg.text.replace(/\bMark\b/g, "Joe").replace(/\bJoe\b/g, "Joe").replace(/\bMike\b/g, "Joe").replace(/\bMarie\b/g, "Marie").replace(/\bSophia\b/g, "Marie");
              }
           });
         }
@@ -637,7 +965,7 @@ export function InteractionZone() {
     }
   };
 
-  const playAudioData = async (base64Data: string, isRawPCM: boolean, sampleRate = 24000, speaker?: 'Marie' | 'Joe', isFallback?: boolean) => {
+  const playAudioData = async (base64Data: string, isRawPCM: boolean, sampleRate = 24000, speaker?: 'Sophia' | 'Mike' | 'Marie' | 'Joe', isFallback?: boolean) => {
     if (!isPlayingRef.current) return;
     if (!audioCtxRef.current) {
       audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -713,7 +1041,7 @@ export function InteractionZone() {
     
     let lastNode: AudioNode = source;
     
-    if (speaker === 'Joe') {
+    if (speaker === 'Joe' || speaker === 'Mike') {
       try {
         // High-End Conversational Mastering Filter Pipeline for Joe:
         // 1. Low-shelf filter to accentuate the comfortable, warm chest/baritone resonance of his voice
@@ -737,7 +1065,7 @@ export function InteractionZone() {
       } catch (eqErr) {
         console.warn("Failed to apply eq filters, playing voice directly:", eqErr);
       }
-    } else if (speaker === 'Marie') {
+    } else if (speaker === 'Marie' || speaker === 'Sophia') {
       try {
         // High-End Studio Mastering Filter Pipeline for Sophia/Marie:
         // 1. Low-shelf filter to give her voice a warm broadcast feel
@@ -777,9 +1105,9 @@ export function InteractionZone() {
     });
   };
 
-  const fetchTTSAudio = async (text: string, speaker: 'Marie' | 'Joe', lang: string = 'en-US'): Promise<{audio: string; isRawPCM: boolean; isFallback?: boolean} | null> => {
+  const fetchTTSAudio = async (text: string, speaker: 'Sophia' | 'Mike' | 'Marie' | 'Joe', lang: string = 'en-US'): Promise<{audio: string; isRawPCM: boolean; isFallback?: boolean} | null> => {
     try {
-      const voice = speaker === 'Marie' ? marieVoice : joeVoice;
+      const voice = (speaker === 'Marie' || speaker === 'Sophia') ? sophiaVoice : mikeVoice;
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -801,7 +1129,80 @@ export function InteractionZone() {
     }
   };
 
-  const playTTS = async (text: string, speaker: 'Marie' | 'Joe', lang: string = 'en-US', preFetchedData?: {audio: string | null; isRawPCM: boolean; isFallback?: boolean} | null) => {
+  const playGoogleTranslateDirectFallback = (text: string, lang: string, speaker: 'Sophia' | 'Mike' | 'Marie' | 'Joe' = 'Sophia'): Promise<boolean> => {
+    return new Promise<boolean>((resolve) => {
+      try {
+        const targetTl = lang.toLowerCase().startsWith('es') ? 'es' : 'en';
+        
+        // Simple text splitter helper to split into safe 120-character chunks
+        const chunks: string[] = [];
+        const words = text.split(/\s+/);
+        let currentChunk = "";
+        for (const word of words) {
+          if ((currentChunk + " " + word).length > 120) {
+            if (currentChunk.trim()) chunks.push(currentChunk.trim());
+            currentChunk = word;
+          } else {
+            currentChunk = currentChunk ? (currentChunk + " " + word) : word;
+          }
+        }
+        if (currentChunk.trim()) chunks.push(currentChunk.trim());
+
+        if (chunks.length === 0) {
+          resolve(true);
+          return;
+        }
+
+        let currentIdx = 0;
+        
+        const playNext = () => {
+          if (currentIdx >= chunks.length || !isPlayingRef.current) {
+            resolve(true);
+            return;
+          }
+          
+          let hasMovedToNext = false;
+          const moveToNext = () => {
+            if (hasMovedToNext) return;
+            hasMovedToNext = true;
+            currentIdx++;
+            playNext();
+          };
+          
+          const chunkText = chunks[currentIdx];
+          const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunkText)}&tl=${targetTl}&client=tw-ob`;
+          
+          const audio = new Audio(url);
+          (window as any)._activeFallbackAudio = audio;
+          
+          audio.onended = () => {
+            moveToNext();
+          };
+          
+          audio.onerror = (err) => {
+            console.warn("Direct fallback chunk play failed, falling back to speech synthesis:", err);
+            speakNativeHelper(chunkText, lang, speaker).then(() => {
+              moveToNext();
+            });
+          };
+          
+          audio.play().catch(playErr => {
+            console.warn("Direct fallback audio play failed, falling back to speech synthesis:", playErr);
+            speakNativeHelper(chunkText, lang, speaker).then(() => {
+              moveToNext();
+            });
+          });
+        };
+        
+        playNext();
+      } catch (e) {
+        console.warn("Direct Google Translate fallback failed:", e);
+        resolve(false);
+      }
+    });
+  };
+
+  const playTTS = async (text: string, speaker: 'Sophia' | 'Mike' | 'Marie' | 'Joe', lang: string = 'en-US', preFetchedData?: {audio: string | null; isRawPCM: boolean; isFallback?: boolean} | null) => {
     if (!isPlayingRef.current) return;
     setTtsErrorMsg(''); // Clear previous error
     try {
@@ -817,10 +1218,11 @@ export function InteractionZone() {
         throw new Error("No audio data available");
       }
     } catch (e: any) {
-      console.warn("TTS Error:", e);
-      setTtsErrorMsg(`[Audio Player] ${e.message || 'Connecting to speaker...'}`);
+      console.warn("Server-side TTS failed or timed out. Falling back to direct HTML5 browser stream.", e);
+      setTtsErrorMsg(`[Fallback Active] Streaming audio...`);
       if (!isPlayingRef.current) return;
-      return new Promise(resolve => setTimeout(() => resolve(true), 2000));
+
+      await playGoogleTranslateDirectFallback(text, lang || 'en-US', speaker);
     }
   };
 
@@ -902,7 +1304,7 @@ export function InteractionZone() {
         }
         if (event.error === 'not-allowed') {
           setMicError(true);
-          setInterimText('(Microphone access denied. Simulating response...)');
+          micBlockedRef.current = true;
         }
       };
 
@@ -913,10 +1315,11 @@ export function InteractionZone() {
           silenceTimeoutRef.current = null;
         }
 
-        const responseText = finalTranscript || interimText;
+        const responseText = finalTranscript.trim();
         
-        if (!responseText || !responseText.trim()) {
-          if (isPlayingRef.current) {
+        if (!responseText) {
+          // Restart listening ONLY if the microphone is fully authorized and we're in continuous mode
+          if (isPlayingRef.current && !micBlockedRef.current) {
             setTimeout(() => {
               if (isPlayingRef.current && !isListeningRef.current) {
                 startListening();
@@ -926,11 +1329,7 @@ export function InteractionZone() {
           return;
         }
 
-        const finalResponse = responseText === '(Microphone access denied. Simulating response...)' 
-          ? "(Nods in agreement)" 
-          : responseText;
-        
-        handleUserFinishedSpeaking(finalResponse);
+        handleUserFinishedSpeaking(responseText);
       };
 
       recognition.start();
@@ -939,7 +1338,7 @@ export function InteractionZone() {
       if (e?.name !== 'InvalidStateError') {
         setIsListening(false);
         setMicError(true);
-        handleUserFinishedSpeaking("(Audio capture failed)");
+        micBlockedRef.current = true;
       }
     }
   };
@@ -995,13 +1394,14 @@ export function InteractionZone() {
     setInterimText('');
     setIsListening(false);
     setMicError(false);
+    micBlockedRef.current = false;
     setLanguage('en-US');
     setIsPlaying(true);
     isPlayingRef.current = true;
     emailSentRef.current = false;
     
-    if (bgmEnabled && bgmAudioRef.current) {
-      bgmAudioRef.current.play().catch(e => console.warn('BGM play failed', e));
+    if (bgmEnabled && syntheticBgmRef.current) {
+      syntheticBgmRef.current.start();
     }
     
     isInterruptedRef.current = false;
@@ -1009,46 +1409,46 @@ export function InteractionZone() {
     await startVAD();
     chatHistoryRef.current = [];
     
-    const marieIntro = MARIE_INTRO_TEXT;
-    const joeIntro = JOE_INTRO_TEXT;
+    const sophiaIntro = MARIE_INTRO_TEXT;
+    const mikeIntro = JOE_INTRO_TEXT;
     
     chatHistoryRef.current.push({ role: 'user', parts: [{ text: "Start the demo." }] });
     chatHistoryRef.current.push({ 
       role: 'model', 
-      parts: [{ text: JSON.stringify({ messages: [{speaker: 'Marie', text: marieIntro}, {speaker: 'Joe', text: joeIntro}] }) }] 
+      parts: [{ text: JSON.stringify({ messages: [{speaker: 'Marie', text: sophiaIntro}, {speaker: 'Joe', text: mikeIntro}] }) }] 
     });
     
     setIsProcessing(false);
     
     // Start fetching audio immediately, but use cache if available
-    const marieAudioPromise = introAudioCacheRef.current.marie ? Promise.resolve(introAudioCacheRef.current.marie) : fetchTTSAudio(marieIntro, 'Marie', 'en-US');
-    const joeAudioPromise = introAudioCacheRef.current.joe ? Promise.resolve(introAudioCacheRef.current.joe) : fetchTTSAudio(joeIntro, 'Joe', 'en-US');
+    const sophiaAudioPromise = introAudioCacheRef.current.marie ? Promise.resolve(introAudioCacheRef.current.marie) : fetchTTSAudio(sophiaIntro, 'Marie', 'en-US');
+    const mikeAudioPromise = introAudioCacheRef.current.joe ? Promise.resolve(introAudioCacheRef.current.joe) : fetchTTSAudio(mikeIntro, 'Joe', 'en-US');
     
     // Optimistic UI for Marie
-    setMessages([{ id: Date.now(), speaker: 'Marie', text: marieIntro, lang: 'en-US' }]);
+    setMessages([{ id: Date.now(), speaker: 'Marie', text: sophiaIntro, lang: 'en-US' }]);
     setCurrentSpeaker('Marie');
     
-    const marieAudio = await marieAudioPromise;
-    if (marieAudio && !introAudioCacheRef.current.marie) {
-      introAudioCacheRef.current.marie = marieAudio;
+    const sophiaAudio = await sophiaAudioPromise;
+    if (sophiaAudio && !introAudioCacheRef.current.marie) {
+      introAudioCacheRef.current.marie = sophiaAudio;
     }
     if (!isInterruptedRef.current && isPlayingRef.current) {
-      await playTTS(marieIntro, 'Marie', 'en-US', marieAudio);
+      await playTTS(sophiaIntro, 'Marie', 'en-US', sophiaAudio);
     }
     
     if (isInterruptedRef.current || !isPlayingRef.current) return;
     await new Promise(resolve => setTimeout(resolve, 20));
     
     // Optimistic UI for Joe
-    setMessages(prev => [...prev, { id: Date.now(), speaker: 'Joe', text: joeIntro, lang: 'en-US' }]);
+    setMessages(prev => [...prev, { id: Date.now(), speaker: 'Joe', text: mikeIntro, lang: 'en-US' }]);
     setCurrentSpeaker('Joe');
     
-    const joeAudio = await joeAudioPromise;
-    if (joeAudio && !introAudioCacheRef.current.joe) {
-      introAudioCacheRef.current.joe = joeAudio;
+    const mikeAudio = await mikeAudioPromise;
+    if (mikeAudio && !introAudioCacheRef.current.joe) {
+      introAudioCacheRef.current.joe = mikeAudio;
     }
     if (!isInterruptedRef.current && isPlayingRef.current) {
-      await playTTS(joeIntro, 'Joe', 'en-US', joeAudio);
+      await playTTS(mikeIntro, 'Joe', 'en-US', mikeAudio);
     }
     
     if (!isInterruptedRef.current) {
@@ -1064,8 +1464,8 @@ export function InteractionZone() {
     isPlayingRef.current = false;
     isInterruptedRef.current = false;
     
-    if (bgmAudioRef.current) {
-      bgmAudioRef.current.pause();
+    if (syntheticBgmRef.current) {
+      syntheticBgmRef.current.stop();
     }
     
     if (abortControllerRef.current) {
@@ -1073,6 +1473,12 @@ export function InteractionZone() {
     }
     
     window.speechSynthesis.cancel();
+    if ((window as any)._activeFallbackAudio) {
+      try {
+        (window as any)._activeFallbackAudio.pause();
+        (window as any)._activeFallbackAudio.src = "";
+      } catch (e) {}
+    }
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch (e) {}
     }
@@ -1140,38 +1546,6 @@ export function InteractionZone() {
               </div>
             )}
           </div>
-          
-          {lastError && (
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 text-red-500 text-xs font-bold"
-            >
-              <AlertCircle className="w-4 h-4" />
-              {lastError}
-            </motion.div>
-          )}
-
-          {micError && (
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 text-red-400 text-[10px] uppercase tracking-tighter font-bold"
-            >
-              <Shield className="w-3 h-3 text-red-500" />
-              Microphone Blocked or Not Found. Please check browser permissions.
-            </motion.div>
-          )}
-          {ttsErrorMsg && (
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 text-yellow-500 text-xs font-bold mt-2"
-            >
-              <AlertCircle className="w-4 h-4" />
-              {ttsErrorMsg}
-            </motion.div>
-          )}
         </div>
         
         <div className="flex flex-wrap justify-center items-center gap-4">
@@ -1179,11 +1553,11 @@ export function InteractionZone() {
             onClick={() => {
               const newState = !bgmEnabled;
               setBgmEnabled(newState);
-              if (bgmAudioRef.current) {
-                if (newState && isPlaying) {
-                  bgmAudioRef.current.play().catch(e => console.warn('BGM play failed', e));
+              if (syntheticBgmRef.current) {
+                if (newState) {
+                  syntheticBgmRef.current.start();
                 } else {
-                  bgmAudioRef.current.pause();
+                  syntheticBgmRef.current.stop();
                 }
               }
             }}
@@ -1245,7 +1619,7 @@ export function InteractionZone() {
           {!isPlaying && (
             <div className="flex flex-col gap-2 w-full max-w-[170px] relative z-20">
               <button
-                id="marie-pitch-btn"
+                id="sophia-pitch-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   playIntroPitch('Marie');
@@ -1257,7 +1631,7 @@ export function InteractionZone() {
                 {isPlayingIntroPitch === 'Marie' ? 'Playing Pitch...' : 'Play Marie Pitch'}
               </button>
               <button
-                id="marie-voice-btn"
+                id="sophia-voice-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedAgentProfile('Marie');
@@ -1304,13 +1678,13 @@ export function InteractionZone() {
                         className="bg-black/50 border border-[#00e5ff]/20 hover:border-[#00e5ff]/60 p-4 rounded-xl cursor-pointer transition-all hover:bg-[#00e5ff]/5 flex flex-col items-center group text-center relative"
                       >
                         <div className="w-12 h-12 rounded-lg border border-[#00e5ff]/40 overflow-hidden mb-2 group-hover:scale-105 transition-transform relative">
-                          <img src={mariePic} alt="Sophia" className="w-full h-full object-cover animate-pulse" referrerPolicy="no-referrer" />
+                          <img src={mariePic} alt="Marie" className="w-full h-full object-cover animate-pulse" referrerPolicy="no-referrer" />
                         </div>
-                        {/* Custom Micro Logo badge for Sophia */}
+                        {/* Custom Micro Logo badge for Marie */}
                         <div className="absolute top-2 right-6 w-4 h-4 rounded-full border border-white/20 bg-black flex items-center justify-center overflow-hidden shadow">
                           <img src="/logo.jpg" alt="badge" className="w-3 h-3 object-contain rounded-full" referrerPolicy="no-referrer" />
                         </div>
-                        <span className="text-xs font-bold text-white group-hover:text-[#00e5ff] transition-colors">Sophia (Intake)</span>
+                        <span className="text-xs font-bold text-white group-hover:text-[#00e5ff] transition-colors">Marie (Intake)</span>
                         <span className="text-[9px] text-[#00e5ff] uppercase font-bold tracking-widest mt-1.5 px-1.5 py-0.5 bg-[#00e5ff]/10 rounded border border-[#00e5ff]/10 hover:bg-[#00e5ff]/20">Tweak Pitch & Accent</span>
                       </div>
 
@@ -1319,13 +1693,13 @@ export function InteractionZone() {
                         className="bg-black/50 border border-[#00b0ff]/20 hover:border-[#00b0ff]/60 p-4 rounded-xl cursor-pointer transition-all hover:bg-[#00b0ff]/5 flex flex-col items-center group text-center relative"
                       >
                         <div className="w-12 h-12 rounded-lg border border-[#00b0ff]/40 overflow-hidden mb-2 group-hover:scale-105 transition-transform relative">
-                          <img src={joePic} alt="Mike" className="w-full h-full object-cover animate-pulse" referrerPolicy="no-referrer" />
+                          <img src={joePic} alt="Joe" className="w-full h-full object-cover animate-pulse" referrerPolicy="no-referrer" />
                         </div>
-                        {/* Custom Micro Logo badge for Mike/Joe */}
+                        {/* Custom Micro Logo badge for Joe */}
                         <div className="absolute top-2 right-6 w-4 h-4 rounded-full border border-white/20 bg-black flex items-center justify-center overflow-hidden shadow">
                           <img src="/logo.jpg" alt="badge" className="w-3 h-3 object-contain rounded-full" referrerPolicy="no-referrer" />
                         </div>
-                        <span className="text-xs font-bold text-white group-hover:text-[#00b0ff] transition-colors">Mike (Technical)</span>
+                        <span className="text-xs font-bold text-white group-hover:text-[#00b0ff] transition-colors">Joe (Technical)</span>
                         <span className="text-[9px] text-[#00b0ff] uppercase font-bold tracking-widest mt-1.5 px-1.5 py-0.5 bg-[#00b0ff]/10 rounded border border-[#00b0ff]/10 hover:bg-[#00b0ff]/20">Tweak Pitch & Accent</span>
                       </div>
                     </div>
@@ -1347,7 +1721,7 @@ export function InteractionZone() {
                     <div className={`px-5 py-3.5 rounded-2xl max-w-[85%] text-sm leading-relaxed shadow-lg ${
                       msg.speaker === 'user' 
                         ? 'bg-white/10 text-white rounded-tr-sm border border-white/5' 
-                        : msg.speaker === 'Marie'
+                        : (msg.speaker === 'Marie' || msg.speaker === 'Sophia')
                           ? 'bg-gradient-to-br from-[#b388ff]/20 to-[#00e5ff]/20 text-[#e0f7fa] border border-[#00e5ff]/30 rounded-tl-sm shadow-[0_0_15px_rgba(179,136,255,0.1)]'
                           : 'bg-gradient-to-br from-[#00b0ff]/20 to-[#00e5ff]/20 text-[#e0f7fa] border border-[#00e5ff]/30 rounded-tl-sm shadow-[0_0_15px_rgba(0,176,255,0.1)]'
                     }`}>
@@ -1403,23 +1777,23 @@ export function InteractionZone() {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center">
               <div className="relative w-48 h-48 flex items-center justify-center">
-                {/* Abstract Voice Visualizer */}
+                 {/* Abstract Voice Visualizer */}
                 <motion.div 
-                  className={`absolute inset-0 rounded-full border-2 ${currentSpeaker === 'Marie' ? 'border-[#00e5ff]/50' : currentSpeaker === 'Joe' ? 'border-[#00b0ff]/50' : 'border-white/10'}`}
+                  className={`absolute inset-0 rounded-full border-2 ${(currentSpeaker === 'Marie' || currentSpeaker === 'Sophia') ? 'border-[#00e5ff]/50' : (currentSpeaker === 'Joe' || currentSpeaker === 'Mike') ? 'border-[#00b0ff]/50' : 'border-white/10'}`}
                   animate={{ scale: currentSpeaker !== 'idle' ? [1, 1.5, 1] : 1, opacity: currentSpeaker !== 'idle' ? [0.5, 0, 0.5] : 0.2 }}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 />
                 <motion.div 
-                  className={`absolute inset-4 rounded-full border-2 ${currentSpeaker === 'Marie' ? 'border-[#00e5ff]/50' : currentSpeaker === 'Joe' ? 'border-[#00b0ff]/50' : 'border-white/10'}`}
+                  className={`absolute inset-4 rounded-full border-2 ${(currentSpeaker === 'Marie' || currentSpeaker === 'Sophia') ? 'border-[#00e5ff]/50' : (currentSpeaker === 'Joe' || currentSpeaker === 'Mike') ? 'border-[#00b0ff]/50' : 'border-white/10'}`}
                   animate={{ scale: currentSpeaker !== 'idle' ? [1, 1.3, 1] : 1, opacity: currentSpeaker !== 'idle' ? [0.8, 0, 0.8] : 0.2 }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: 0.2 }}
                 />
-                <div className={`w-24 h-24 rounded-full flex items-center justify-center backdrop-blur-md border ${currentSpeaker === 'Marie' ? 'bg-[#00e5ff]/20 border-[#00e5ff]/50 shadow-[0_0_30px_rgba(0,229,255,0.3)]' : currentSpeaker === 'Joe' ? 'bg-[#00b0ff]/20 border-[#00b0ff]/50 shadow-[0_0_30px_rgba(0,176,255,0.3)]' : 'bg-white/5 border-white/10'}`}>
-                  <Activity className={`w-8 h-8 ${currentSpeaker === 'Marie' ? 'text-[#00e5ff]' : currentSpeaker === 'Joe' ? 'text-[#00b0ff]' : 'text-white/20'}`} />
+                <div className={`w-24 h-24 rounded-full flex items-center justify-center backdrop-blur-md border ${(currentSpeaker === 'Marie' || currentSpeaker === 'Sophia') ? 'bg-[#00e5ff]/20 border-[#00e5ff]/50 shadow-[0_0_30px_rgba(0,229,255,0.3)]' : (currentSpeaker === 'Joe' || currentSpeaker === 'Mike') ? 'bg-[#00b0ff]/20 border-[#00b0ff]/50 shadow-[0_0_30px_rgba(0,176,255,0.3)]' : 'bg-white/5 border-white/10'}`}>
+                  <Activity className={`w-8 h-8 ${(currentSpeaker === 'Marie' || currentSpeaker === 'Sophia') ? 'text-[#00e5ff]' : (currentSpeaker === 'Joe' || currentSpeaker === 'Mike') ? 'text-[#00b0ff]' : 'text-white/20'}`} />
                 </div>
               </div>
               <p className="mt-12 text-white/50 uppercase tracking-widest text-xs font-bold h-4">
-                {currentSpeaker === 'Marie' ? 'Marie is speaking...' : currentSpeaker === 'Joe' ? 'Joe is speaking...' : ''}
+                {(currentSpeaker === 'Marie' || currentSpeaker === 'Sophia') ? 'Marie is speaking...' : (currentSpeaker === 'Joe' || currentSpeaker === 'Mike') ? 'Joe is speaking...' : ''}
               </p>
             </div>
           )}
@@ -1493,7 +1867,7 @@ export function InteractionZone() {
           {!isPlaying && (
             <div className="flex flex-col gap-2 w-full max-w-[170px] relative z-20">
               <button
-                id="joe-pitch-btn"
+                id="mike-pitch-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   playIntroPitch('Joe');
@@ -1505,7 +1879,7 @@ export function InteractionZone() {
                 {isPlayingIntroPitch === 'Joe' ? 'Playing Pitch...' : 'Play Joe Pitch'}
               </button>
               <button
-                id="joe-voice-btn"
+                id="mike-voice-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedAgentProfile('Joe');
@@ -1521,20 +1895,37 @@ export function InteractionZone() {
         </div>
       </div>
 
-      {/* Real-time Data Capture Overlay - Only show at the end when contact is captured */}
+      {/* Real-time Data Capture Overlay - Shows in real-time as fields are captured to prove the data was taken down */}
       <AnimatePresence>
-        {(capturedData.contact || capturedData.appointmentConfirmed) && (
+        {(capturedData.clientName || capturedData.industry || capturedData.staffingNeeds || capturedData.contact || capturedData.appointmentConfirmed) && (
           <motion.div 
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="mt-12 w-full max-w-2xl mx-auto bg-black/90 backdrop-blur-xl border border-[#00e5ff]/40 rounded-2xl p-6 shadow-[0_10px_40px_rgba(0,229,255,0.3)] relative z-20"
+            className={`mt-12 w-full max-w-2xl mx-auto bg-black/95 backdrop-blur-xl border rounded-2xl p-6 relative z-20 transition-all duration-300 ${
+              (capturedData.contact || capturedData.appointmentConfirmed) 
+                ? 'border-[#00e5ff] shadow-[0_10px_40px_rgba(0,229,255,0.25)]' 
+                : 'border-white/10 shadow-[0_5px_20px_rgba(255,255,255,0.02)]'
+            }`}
           >
             <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-400" />
-                <span className="text-xs uppercase tracking-widest text-[#00e5ff] font-bold">Lead Captured Successfully</span>
+                {(capturedData.contact || capturedData.appointmentConfirmed) ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-400" />
+                ) : (
+                  <span className="flex h-3 w-3 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00e5ff]/40 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#00e5ff]"></span>
+                  </span>
+                )}
+                <span className="text-xs uppercase tracking-widest text-white font-bold">
+                  {(capturedData.contact || capturedData.appointmentConfirmed) 
+                    ? 'Lead Captured Successfully' 
+                    : 'Real-Time Voice Intake Docket (Capturing...)'}
+                </span>
               </div>
-              <span className="text-[10px] uppercase tracking-widest text-white/40">Synced to CRM</span>
+              <span className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
+                {(capturedData.contact || capturedData.appointmentConfirmed) ? 'Synced to CRM' : 'Live Capture'}
+              </span>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               {capturedData.intent && (
@@ -1601,15 +1992,14 @@ export function InteractionZone() {
         isOpen={selectedAgentProfile !== null} 
         onClose={() => setSelectedAgentProfile(null)} 
         agent={selectedAgentProfile} 
-        marieVoice={marieVoice}
-        setMarieVoice={handleSetMarieVoice}
-        joeVoice={joeVoice}
-        setJoeVoice={handleSetJoeVoice}
+        marieVoice={sophiaVoice}
+        setMarieVoice={handleSetSophiaVoice}
+        joeVoice={mikeVoice}
+        setJoeVoice={handleSetMikeVoice}
       />
 
       <audio 
         ref={bgmAudioRef} 
-        src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3" 
         loop 
       />
     </div>

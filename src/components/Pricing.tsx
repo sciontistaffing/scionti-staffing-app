@@ -1,7 +1,23 @@
 import { motion } from 'motion/react';
 import { Check, Plus, Rocket, Shield, Zap, Globe, Video, MessageSquare, Bell } from 'lucide-react';
 
-const tiers = [
+interface Tier {
+  name: string;
+  price: string;
+  setup: string;
+  minutes: string;
+  overage: string;
+  description: string;
+  features: string[];
+  icon: React.ReactNode;
+  color: string;
+  timeline: string;
+  popular?: boolean;
+  comingSoon?: boolean;
+  buttonText?: string;
+}
+
+const tiers: Tier[] = [
   {
     name: "Tier 1: Front Desk",
     price: "$99",
@@ -14,10 +30,12 @@ const tiers = [
       "500 Minutes of Call Time",
       "Instant Message Routing",
       "Lead Capture",
-      "24/7 Availability"
+      "24/7 Availability",
+      "Includes 2 Custom AI Video Clips & 1 Custom Hold Music Track per month."
     ],
     icon: <Shield className="w-6 h-6 text-[#00e5ff]" />,
-    color: "from-[#00e5ff]/20 to-transparent"
+    color: "from-[#00e5ff]/20 to-transparent",
+    timeline: "Deployed and operational within 24–48 hours."
   },
   {
     name: "Tier 2: Operations Manager",
@@ -32,55 +50,61 @@ const tiers = [
       "1,500 Minutes of Call Time",
       "Real-Time Call Summaries & Analytics",
       "Email Organizing & Invoicing",
-      "Workflow Automation"
+      "Workflow Automation",
+      "Includes 5 Custom AI Video Clips & 3 Custom Hold Music Tracks per month."
     ],
     icon: <Zap className="w-6 h-6 text-amber-400" />,
-    color: "from-amber-400/20 to-transparent"
+    color: "from-amber-400/20 to-transparent",
+    timeline: "Complete system build & automation active in 3–5 business days."
   },
   {
     name: "Tier 3: Digital Twin",
     price: "$399",
     setup: "$1,500",
-    minutes: "4,000",
+    minutes: "2,500",
     overage: "$0.15",
     description: "Total Persona Simulation",
     features: [
       "Custom Voice Cloning",
-      "4,000 Minutes of Call Time",
+      "2,500 Minutes of Call Time",
       "Full CRM Integration",
       "Automated Follow-Ups",
-      "Outbound Reactivation"
+      "Outbound Reactivation",
+      "Includes 10 Multilingual AI Video Clips & 5 Custom Hold Music Tracks per month."
     ],
     icon: <Rocket className="w-6 h-6 text-[#b388ff]" />,
-    color: "from-[#b388ff]/20 to-transparent"
+    color: "from-[#b388ff]/20 to-transparent",
+    timeline: "Voice cloning & deep CRM sync finalized in 7–10 business days."
   },
   {
-    name: "Tier 4: Scionti Elite Apex",
+    name: "Tier 4: Elite Specialist Elite Apex",
     price: "$499/mo",
     setup: "$1,500",
-    minutes: "5,000",
+    minutes: "3,500",
     overage: "$0.10",
     description: "Full Custom Ecosystem",
-    comingSoon: true,
+    buttonText: "SELECT ELITE APEX",
     features: [
       "Full Custom 5-Page Web Design & Launch",
       "Full Voice-Cloned \"Digital Twin\" AI Employee",
-      "5,000 Monthly High-Speed Voice Minutes",
+      "3,500 Monthly High-Speed Voice Minutes",
       "Complete CRM Integration & Live Leads Dashboard",
-      "24/7 Premium Website Hosting & Security Updates"
+      "24/7 Premium Website Hosting & Security Updates",
+      "Includes Unlimited Multilingual AI Video Ads & Custom Branded Jingles."
     ],
     icon: <Globe className="w-6 h-6 text-emerald-400" />,
-    color: "from-emerald-400/20 to-transparent"
+    color: "from-emerald-400/20 to-transparent",
+    timeline: "White-glove custom enterprise rollout complete in 10–14 business days."
   }
 ];
 
 const upgrades = [
-  { name: "Emergency Dispatch", price: "+$75/mo", icon: <Bell className="w-4 h-4" /> },
-  { name: "AI Video Spokesperson", price: "$199 Setup + $49/mo", icon: <Video className="w-4 h-4" /> },
-  { name: "Global Languages", price: "+$50/mo", icon: <Globe className="w-4 h-4" /> },
-  { name: "Smart SMS Follow-up", price: "+$30/mo", icon: <MessageSquare className="w-4 h-4" /> },
-  { name: "Daily Call Summaries", price: "+$20/mo", icon: <Plus className="w-4 h-4" /> },
-  { name: "Custom Hold Music", price: "$149 one-time + $25/mo", icon: <Plus className="w-4 h-4" /> }
+  { name: "Emergency Dispatch", price: "+$75/MO", icon: <Bell className="w-4 h-4" /> },
+  { name: "AI Video Spokesperson", price: "$199 SETUP + $49/MO", icon: <Video className="w-4 h-4" /> },
+  { name: "Global Languages", price: "+$50/MO", description: "Unlocks fully multilingual phone bots and automated translation modules", icon: <Globe className="w-4 h-4" /> },
+  { name: "Smart SMS Follow-up", price: "+$30/MO", icon: <MessageSquare className="w-4 h-4" /> },
+  { name: "Daily Call Summaries", price: "+$20/MO", icon: <Plus className="w-4 h-4" /> },
+  { name: "Custom Hold Music", price: "$149 ONE-TIME + $25/MO", icon: <Plus className="w-4 h-4" /> }
 ];
 
 export function Pricing() {
@@ -173,9 +197,14 @@ export function Pricing() {
                     <h3 className="text-lg font-bold tracking-tight leading-tight">{tier.name}</h3>
                   </div>
                 </div>
-                <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold px-2 py-1 bg-white/5 rounded border border-white/5 inline-block self-start">
-                  {tier.description}
-                </p>
+                <div className="flex flex-col gap-2">
+                  <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold px-2 py-1 bg-white/5 rounded border border-white/5 inline-block self-start">
+                    {tier.description}
+                  </p>
+                  <p className="text-white/80 text-[11px] leading-relaxed italic border-l-2 border-white/20 pl-2 mt-1">
+                    {tier.timeline}
+                  </p>
+                </div>
               </div>
 
               <div className="mb-6">
@@ -184,7 +213,7 @@ export function Pricing() {
                   <span className="text-white/40 text-xs">{tier.price.includes('/') ? `/${tier.price.split('/')[1]}` : '/ month'}</span>
                 </div>
                 <div className="text-[10px] font-bold text-[#00e5ff] mt-1 uppercase tracking-widest">
-                  ${tier.setup} One-Time Setup
+                  {tier.setup.startsWith('$') ? tier.setup : `$${tier.setup}`} One-Time Setup
                 </div>
               </div>
 
@@ -220,11 +249,17 @@ export function Pricing() {
                 onClick={() => handleCheckout(tier)}
                 className="relative z-10 w-full py-4 mt-8 rounded-2xl bg-white/5 border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-[0.98]"
               >
-                Select {tier.name.includes(':') ? tier.name.split(':')[1].trim() : tier.name}
+                {tier.buttonText || `Select ${tier.name.includes(':') ? tier.name.split(':')[1].trim() : tier.name}`}
               </button>
             )}
           </motion.div>
         ))}
+      </div>
+
+      <div className="text-center mt-8 mb-16" id="pricing-disclaimer">
+        <p className="text-xs md:text-sm text-white/50 italic tracking-wide">
+          All additional minutes past your monthly plan cap are billed at $0.20 per minute.
+        </p>
       </div>
 
       <div className="mt-24 bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden backdrop-blur-xl">
@@ -249,21 +284,34 @@ export function Pricing() {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
                 viewport={{ once: true }}
-                className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-[#00e5ff]/30 transition-colors group cursor-pointer"
+                className="flex items-start justify-between p-4 rounded-2xl bg-black/40 border border-white/5 hover:border-[#00e5ff]/30 transition-colors group cursor-pointer gap-4 min-h-[72px]"
               >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/5 rounded-lg text-[#00e5ff] group-hover:bg-[#00e5ff]/10 transition-colors">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-white/5 rounded-lg text-[#00e5ff] group-hover:bg-[#00e5ff]/10 transition-colors mt-0.5">
                     {upgrade.icon}
                   </div>
-                  <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
-                    {upgrade.name}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                      {upgrade.name}
+                    </span>
+                    {upgrade.description && (
+                      <span className="text-[11px] text-white/40 mt-1 leading-snug">
+                        {upgrade.description}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <span className="text-[10px] font-black tracking-widest text-[#00e5ff] uppercase px-3 py-1 bg-[#00e5ff]/5 rounded-full border border-[#00e5ff]/10">
+                <span className="text-[10px] font-black tracking-widest text-[#00e5ff] uppercase px-3 py-1 bg-[#00e5ff]/5 rounded-full border border-[#00e5ff]/10 shrink-0 mt-1">
                   {upgrade.price}
                 </span>
               </motion.div>
             ))}
+          </div>
+
+          <div className="mt-6 text-center" id="upgrades-disclaimer">
+            <p className="text-xs text-white/40 italic font-medium">
+              Overage or additional custom media production packages can be unlocked on-demand at any time.
+            </p>
           </div>
         </div>
       </div>
