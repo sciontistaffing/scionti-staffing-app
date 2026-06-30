@@ -120,6 +120,7 @@ class SyntheticSaxBGM {
 
   setVolume(vol: number) {
     this.volumeValue = vol;
+    if (!this.isPlaying) return; // Ignore volume updates on audio node if stopped/disabled
     if (this.masterGain && this.ctx) {
       try {
         this.masterGain.gain.setTargetAtTime(vol, this.ctx.currentTime, 0.15);
@@ -253,9 +254,15 @@ class SyntheticSaxBGM {
     }
     if (this.masterGain) {
       try {
+        this.masterGain.gain.setValueAtTime(0, this.ctx?.currentTime || 0);
         this.masterGain.disconnect();
       } catch (e) {}
       this.masterGain = null;
+    }
+    if (this.ctx && this.ctx.state !== 'suspended') {
+      try {
+        this.ctx.suspend();
+      } catch (e) {}
     }
   }
 }
@@ -398,6 +405,11 @@ export function InteractionZone() {
   const [ttsErrorMsg, setTtsErrorMsg] = useState('');
   const [volLevel, setVolLevel] = useState(0);
   const [bgmEnabled, setBgmEnabled] = useState(true);
+  const bgmEnabledRef = useRef(true);
+
+  useEffect(() => {
+    bgmEnabledRef.current = bgmEnabled;
+  }, [bgmEnabled]);
   const [interruptionEnabled, setInterruptionEnabled] = useState(false);
   const interruptionEnabledRef = useRef(false);
   const introAudioCacheRef = useRef<{marie: any, joe: any}>({ marie: null, joe: null });
@@ -788,7 +800,7 @@ export function InteractionZone() {
           .catch(e => console.warn("Failed to resume AudioContext:", e));
       }
       // Play background music on first user gesture if active
-      if (bgmEnabled && syntheticBgmRef.current) {
+      if (bgmEnabledRef.current && syntheticBgmRef.current) {
         syntheticBgmRef.current.start();
       }
     };
@@ -1294,7 +1306,7 @@ export function InteractionZone() {
             try {
               recognition.stop();
             } catch (e) {}
-          }, 1500); // 1.5 seconds of silence since last word spoken to prevent cutting off mid-sentence
+          }, 800); // 800ms of silence since last word spoken to prevent cutting off mid-sentence while keeping response ultra-snappy
         }
       };
 
@@ -1400,7 +1412,7 @@ export function InteractionZone() {
     isPlayingRef.current = true;
     emailSentRef.current = false;
     
-    if (bgmEnabled && syntheticBgmRef.current) {
+    if (bgmEnabledRef.current && syntheticBgmRef.current) {
       syntheticBgmRef.current.start();
     }
     

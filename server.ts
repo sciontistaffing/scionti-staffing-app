@@ -330,10 +330,14 @@ UPCOMING SMS AUTOMATION & CAMPAIGN PLATFORM (Our new breakthrough):
 We are about to launch our highly anticipated Outbound SMS Automation & Campaigns platform! This upcoming feature is a complete powerhouse: it allows business owners to instantly blast custom SMS updates, promotions, schedules, and reminders entirely automated by AI. It features automated two-way text conversation handling where the AI replies to customer texts directly to book leads into your CRM. It's designed to bring you high open rates (98%!) and boost sales directly without extra work. Talk about this as our incredible upcoming expansion that will supercharge their customer engagement right from their text inbox!
 
 DISCOUNTS & SPECIALS:
-- We do NOT offer any discounted rates. (Except the referral credit). Please politely decline any requests for discounts.${systemFeedbackGuidance}`,
+- We do NOT offer any discounted rates. (Except the referral credit). Please politely decline any requests for discounts.
+
+CRITICAL JSON SAFETY RULE:
+- Always use single quotes (') for any nested quotes, speech, or emphasis within text strings (e.g., use 'hello' instead of "hello"). Never output unescaped double quotes inside JSON string values.${systemFeedbackGuidance}`,
           temperature: 0.2, // Low temperature for high coherence and reduced hallucinations
           topP: 0.8,
           topK: 40,
+          maxOutputTokens: 1200,
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -379,13 +383,56 @@ DISCOUNTS & SPECIALS:
       let parsed = null;
       try {
         parsed = JSON.parse(content);
-      } catch (e) {
-        // Fallback: extract JSON object or array from the text using regex
-        const match = content.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-        if (match) {
-          parsed = JSON.parse(match[0]);
-        } else {
-          throw new Error("Could not parse JSON response");
+      } catch (e: any) {
+        console.warn("[JSON Parse Warning] Standard JSON parse failed, initiating robust parsing and regex fallback recovery:", e.message || e);
+        try {
+          // Fallback 1: Extract JSON block
+          const match = content.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+          if (match) {
+            parsed = JSON.parse(match[0]);
+          }
+        } catch (e2) {
+          // If fallback 1 fails, parse manually via regex matching (perfect for unescaped nested quotes)
+          console.warn("[JSON Parse Fallback] Regex matching parser initiated...");
+        }
+
+        if (!parsed) {
+          try {
+            const messages: any[] = [];
+            const capturedData: any = {};
+
+            // Regex matches speaker, text, and lang in messages with optional non-greedy matching on text to tolerate inner unescaped quotes
+            const msgRegex = /\{\s*"speaker"\s*:\s*"([^"]+)"\s*,\s*"text"\s*:\s*"([\s\S]*?)"\s*,\s*"lang"\s*:\s*"([^"]+)"\s*\}/gi;
+            let msgMatch;
+            while ((msgMatch = msgRegex.exec(content)) !== null) {
+              messages.push({
+                speaker: msgMatch[1],
+                text: msgMatch[2],
+                lang: msgMatch[3]
+              });
+            }
+
+            // Extract capturedData fields
+            const fields = ['intent', 'industry', 'tier', 'staffingNeeds', 'clientName', 'contact'];
+            fields.forEach(field => {
+              const fieldRegex = new RegExp(`"${field}"\\s*:\\s*"([^"]*)"`, 'i');
+              const fieldMatch = content.match(fieldRegex);
+              if (fieldMatch) {
+                capturedData[field] = fieldMatch[1];
+              }
+            });
+
+            if (messages.length > 0) {
+              parsed = { messages, capturedData };
+              console.log("[JSON Parse Fallback] Successfully reconstructed conversational object with", messages.length, "messages.");
+            }
+          } catch (e3: any) {
+            console.error("[JSON Parse Fallback Crash] Reconstructor failed:", e3.message || e3);
+          }
+        }
+
+        if (!parsed) {
+          throw new Error("Could not parse or repair JSON response from model");
         }
       }
 
