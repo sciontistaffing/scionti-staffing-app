@@ -84,187 +84,10 @@ const decodeAudioDataHelper = (ctx: AudioContext, arrayBuffer: ArrayBuffer): Pro
 };
 
 class SyntheticSaxBGM {
-  private ctx: AudioContext | null = null;
-  private masterGain: GainNode | null = null;
-  private isPlaying = false;
-  private schedulerTimer: any = null;
-  private currentBeat = 0;
-  private tempo = 68; // Chill late-night smooth jazz tempo
-  private volumeValue = 0.05;
-
   constructor() {}
-
-  start() {
-    if (this.isPlaying) return;
-    this.isPlaying = true;
-    
-    try {
-      if (!this.ctx) {
-        this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      
-      if (this.ctx.state === 'suspended') {
-        this.ctx.resume();
-      }
-
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(this.volumeValue, this.ctx.currentTime);
-      this.masterGain.connect(this.ctx.destination);
-
-      this.currentBeat = 0;
-      this.scheduleNext();
-    } catch (e) {
-      console.warn("Failed to start synthetic BGM engine:", e);
-    }
-  }
-
-  setVolume(vol: number) {
-    this.volumeValue = vol;
-    if (!this.isPlaying) return; // Ignore volume updates on audio node if stopped/disabled
-    if (this.masterGain && this.ctx) {
-      try {
-        this.masterGain.gain.setTargetAtTime(vol, this.ctx.currentTime, 0.15);
-      } catch (e) {
-        try {
-          this.masterGain.gain.setValueAtTime(vol, this.ctx.currentTime);
-        } catch (err) {}
-      }
-    }
-  }
-
-  private scheduleNext() {
-    if (!this.isPlaying || !this.ctx) return;
-
-    try {
-      const beatDuration = 60 / this.tempo;
-      const now = this.ctx.currentTime;
-
-      // Jazz chords: Fmaj9, G13, Em7, Am9
-      const chords = [
-        [174.61, 220.00, 261.63, 329.63, 349.23], // Fmaj9
-        [196.00, 246.94, 293.66, 392.00, 440.00], // G13
-        [164.81, 196.00, 246.94, 329.63, 392.00], // Em7
-        [220.00, 261.63, 329.63, 392.00, 493.88]  // Am9
-      ];
-
-      const chordIdx = Math.floor(this.currentBeat / 8) % chords.length;
-      const currentChord = chords[chordIdx];
-
-      // Play soft ambient chord pad on beat 0 and 4 of each 8-beat cycle
-      if (this.currentBeat % 4 === 0) {
-        currentChord.slice(0, 4).forEach((freq, idx) => {
-          this.playPadNote(freq, now + idx * 0.05, beatDuration * 3.8);
-        });
-      }
-
-      // Improvise a soft, soulful saxophone melody note
-      const pentatonic = [329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99]; // E4, G4, A4, C5, D5, E5, G5
-      
-      const melodicBeats = [0, 2, 3, 5, 6, 7];
-      if (melodicBeats.includes(this.currentBeat % 8) && Math.random() < 0.55) {
-        const noteFreq = pentatonic[Math.floor(Math.random() * pentatonic.length)];
-        const duration = beatDuration * (1 + Math.random() * 1.5);
-        this.playSaxNote(noteFreq, now, duration);
-      }
-
-      this.currentBeat++;
-
-      this.schedulerTimer = setTimeout(() => {
-        this.scheduleNext();
-      }, beatDuration * 1000);
-    } catch (e) {
-      console.warn("Synthetic BGM scheduling failed:", e);
-    }
-  }
-
-  private playPadNote(freq: number, startTime: number, duration: number) {
-    if (!this.ctx || !this.masterGain) return;
-
-    try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      const filter = this.ctx.createBiquadFilter();
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, startTime);
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(350, startTime);
-
-      gain.gain.setValueAtTime(0, startTime);
-      gain.gain.linearRampToValueAtTime(0.12, startTime + 0.8);
-      gain.gain.setValueAtTime(0.12, startTime + duration - 0.8);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(this.masterGain);
-
-      osc.start(startTime);
-      osc.stop(startTime + duration);
-    } catch (e) {}
-  }
-
-  private playSaxNote(freq: number, startTime: number, duration: number) {
-    if (!this.ctx || !this.masterGain) return;
-
-    try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      const filter = this.ctx.createBiquadFilter();
-
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freq, startTime);
-
-      const vibratoLfo = this.ctx.createOscillator();
-      const vibratoGain = this.ctx.createGain();
-      vibratoLfo.frequency.setValueAtTime(5.2, startTime);
-      vibratoGain.gain.setValueAtTime(freq * 0.012, startTime);
-      
-      vibratoLfo.connect(vibratoGain);
-      vibratoGain.connect(osc.frequency);
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(800, startTime);
-      filter.frequency.exponentialRampToValueAtTime(450, startTime + duration);
-
-      gain.gain.setValueAtTime(0, startTime);
-      gain.gain.linearRampToValueAtTime(0.16, startTime + 0.2);
-      gain.gain.linearRampToValueAtTime(0.12, startTime + 0.4);
-      gain.gain.setValueAtTime(0.12, startTime + duration - 0.25);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(this.masterGain);
-
-      vibratoLfo.start(startTime);
-      osc.start(startTime);
-
-      vibratoLfo.stop(startTime + duration);
-      osc.stop(startTime + duration);
-    } catch (e) {}
-  }
-
-  stop() {
-    this.isPlaying = false;
-    if (this.schedulerTimer) {
-      clearTimeout(this.schedulerTimer);
-      this.schedulerTimer = null;
-    }
-    if (this.masterGain) {
-      try {
-        this.masterGain.gain.setValueAtTime(0, this.ctx?.currentTime || 0);
-        this.masterGain.disconnect();
-      } catch (e) {}
-      this.masterGain = null;
-    }
-    if (this.ctx && this.ctx.state !== 'suspended') {
-      try {
-        this.ctx.suspend();
-      } catch (e) {}
-    }
-  }
+  start() {}
+  setVolume(vol: number) {}
+  stop() {}
 }
 
 const speakNativeHelper = (text: string, lang: string, speaker: 'Marie' | 'Joe' | 'Sophia' | 'Mike'): Promise<boolean> => {
@@ -404,8 +227,8 @@ export function InteractionZone() {
   const [selectedAgentProfile, setSelectedAgentProfile] = useState<'Marie' | 'Joe' | null>(null);
   const [ttsErrorMsg, setTtsErrorMsg] = useState('');
   const [volLevel, setVolLevel] = useState(0);
-  const [bgmEnabled, setBgmEnabled] = useState(true);
-  const bgmEnabledRef = useRef(true);
+  const [bgmEnabled, setBgmEnabled] = useState(false);
+  const bgmEnabledRef = useRef(false);
 
   useEffect(() => {
     bgmEnabledRef.current = bgmEnabled;
@@ -1561,28 +1384,6 @@ export function InteractionZone() {
         </div>
         
         <div className="flex flex-wrap justify-center items-center gap-4">
-          <button
-            onClick={() => {
-              const newState = !bgmEnabled;
-              setBgmEnabled(newState);
-              if (syntheticBgmRef.current) {
-                if (newState) {
-                  syntheticBgmRef.current.start();
-                } else {
-                  syntheticBgmRef.current.stop();
-                }
-              }
-            }}
-            className={`px-4 py-2 rounded-full transition-all uppercase tracking-widest text-xs font-bold flex items-center gap-2 border ${
-              bgmEnabled 
-                ? 'bg-[#00e5ff]/20 text-[#00e5ff] border-[#00e5ff]/50' 
-                : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10 border-white/10'
-            }`}
-          >
-            <Music className="w-3 h-3" />
-            {bgmEnabled ? 'BGM: ON' : 'BGM: OFF'}
-          </button>
-
           <button
             onClick={() => setShowTranscript(!showTranscript)}
             className="px-4 py-2 rounded-full bg-white/5 text-white/60 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest text-xs font-bold flex items-center gap-2 border border-white/10"
